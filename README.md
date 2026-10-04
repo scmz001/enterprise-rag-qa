@@ -11,6 +11,39 @@
 
 ---
 
+## 🚀 快速开始
+
+```bash
+# 0. 前置：打开 LM Studio，加载一个「对话模型」和一个「向量模型」，启动 Local Server
+#    默认地址 http://localhost:1234/v1
+#    （本项目实测使用 qwen3.5-9b + text-embedding-bge-m3）
+
+# 1. 创建虚拟环境并安装依赖（需 Python 3.10+，实测 3.14 可用）
+py -3.14 -m venv .venv
+.venv\Scripts\pip install -r requirements.txt
+#    国内网络建议追加清华镜像：-i https://pypi.tuna.tsinghua.edu.cn/simple
+
+# 2. 配置模型名：把 .env.example 复制为 .env，填入 LM Studio 中实际的模型名
+cp .env.example .env
+#    不确定模型叫什么？执行：curl http://localhost:1234/v1/models
+
+# 3. 把 data/docs/ 里的文档灌进知识库（首次必须执行，约 1 分钟）
+.venv\Scripts\python.exe -m src.ingest
+
+# 4. 启动问答界面
+.venv\Scripts\streamlit run app.py
+```
+
+浏览器会自动打开 <http://localhost:8501>，在输入框里提问即可。
+
+**不需要** Docker、Redis、PostgreSQL，也不需要单独启动任何数据库服务。
+换一台电脑只需重复上面 4 步——文档已在仓库里，向量库会自动重建。
+
+> 详细说明见下方：[目录结构](#一目录结构) ｜ [依赖库作用](#二依赖库说明每个库的作用) ｜
+> [命令行测试问答](#42-在终端里测试问答效果第三步) ｜ [已知与已解决的问题](#六已解决的问题纯标题块原已知问题)
+
+---
+
 ## 一、目录结构
 
 ```
