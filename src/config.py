@@ -38,9 +38,28 @@ CHUNK_OVERLAP = 80  # 相邻块的重叠字数，防止关键句正好卡在切�
 # ---------- 检索参数 ----------
 COLLECTION_NAME = "startech_policy"  # ChromaDB 集合名
 TOP_K = 4                            # 每次提问取回的相关片段数
+# 距离阈值（余弦距离，越小越相关）。实测：文档内问题 0.31~0.38，文档外提问 0.49~0.63。
+# 取 0.55 属于"宽松预过滤"：只拦截明显无关的提问，绝不误伤文档内问题；
+# 真正的"查不到"由提示词约束模型来判断，因为语义不匹配是距离量不出来的。
+SCORE_THRESHOLD = 0.55
+
+# ---------- 生成参数 ----------
+LLM_TEMPERATURE = 0.0     # 制度问答要的是稳定复述，不是创造力
+# 输出额度上限。注意：qwen3.5-9b 这类"推理模型"会先输出一大段内部思考再给答案，
+# 这个额度必须同时覆盖"思考 + 正式回答"。实测一次年假问答：思考约 1010 token、
+# 回答约 80 token。曾设为 800 导致思考耗尽额度、回答为空，务必留足余量。
+LLM_MAX_TOKENS = 2048
+REQUEST_TIMEOUT = 300     # 单次请求超时秒数（含模型思考时间）
 
 # ---------- 固定话术（业务边界，禁止编造）----------
 NO_ANSWER_REPLY = "根据公司现有制度，无法确认该信息，请联系HR或者IT服务台。"
+
+# 生成失败时的提示。必须与 NO_ANSWER_REPLY 区分开：
+# "服务出错"绝不能被显示成"制度里没有这条规定"。
+GENERATION_ERROR_REPLY = (
+    "抱歉，本次未能生成回答：{reason}\n"
+    "这属于模型服务问题，**不代表公司制度中没有相关规定**，请重试或检查 LM Studio。"
+)
 
 
 def describe() -> dict[str, object]:
@@ -54,4 +73,15 @@ def describe() -> dict[str, object]:
         "配置文件": f"{ENV_FILE}（{'已找到' if ENV_FILE.exists() else '不存在，将使用默认值'}）",
         "切分大小/重叠": f"{CHUNK_SIZE} / {CHUNK_OVERLAP} 字",
         "检索条数": TOP_K,
+        "距离阈值": SCORE_THRESHOLD,
     }
+
+
+def require_chat_model() -> str:
+    """对话模型未配置时给出明确的修复指引，而不是让程序报出难懂的错。"""
+    if not CHAT_MODEL:
+        raise RuntimeError(
+            f"未配置对话模型。请打开 {ENV_FILE}，把 CHAT_MODEL= 后面填成 "
+            "LM Studio 中已加载的对话模型名（可用 curl http://localhost:1234/v1/models 查看）。"
+        )
+    return CHAT_MODEL
