@@ -1,0 +1,2 @@
+# 占位文件：保证 storage/ 目录被 git 跟踪。
+# 真正的向量数据会在第二步生成到 storage/chroma/ 下（该子目录已被 .gitignore 忽略）。

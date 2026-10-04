@@ -1,0 +1,21 @@
+# 星辰科技企业制度问答系统 —— 运行依赖
+# 环境：Python 3.14（本机实测可用）
+# 安装命令：py -3.14 -m venv .venv          （虚拟环境已由项目初始化代劳）
+#           .venv\Scripts\pip install -r requirements.txt
+# 国内网络可追加：-i https://pypi.tuna.tsinghua.edu.cn/simple
+
+# ---------- 核心框架 ----------
+streamlit>=1.40,<2.0          # Web 前端界面（对话窗口、侧边栏）
+langchain>=0.3,<1.0           # RAG 编排框架（串联检索与生成）
+langchain-community>=0.3,<1.0 # LangChain 的文档加载器集合（读 pdf/docx 等）
+langchain-text-splitters>=0.3 # 文档切分器（把长文档切成小段）
+langchain-openai>=0.2,<1.0    # OpenAI 兼容接口，用于连接 LM Studio 本地模型
+langchain-chroma>=0.2,<1.0    # LangChain 与 ChromaDB 的桥接层
+chromadb>=0.5,<2.0            # 本地持久化向量数据库（无需单独启动服务）
+
+# ---------- 文档解析 ----------
+pypdf>=5.0                    # 读取 .pdf 文件的正文
+docx2txt>=0.8                 # 读取 .docx（Word）文件的正文
+
+# ---------- 基础工具 ----------
+python-dotenv>=1.0            # 从 .env 文件读取 API Key / 模型名，避免硬编码
