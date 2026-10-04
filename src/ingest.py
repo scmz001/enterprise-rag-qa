@@ -101,6 +101,11 @@ def _promote_headings(text: str) -> str:
     return "\n".join(out)
 
 
+def _plain_text(text: str) -> str:
+    """去掉 markdown 标题标记并压平空白，用于衡量一个块里到底有多少实质文字。"""
+    return " ".join(re.sub(r"^#+\s*", "", text, flags=re.MULTILINE).split())
+
+
 def _ensure_title(text: str) -> str:
     """确保文档有且仅有一个一级标题（用首个非空行充当）。"""
     lines = text.splitlines()
@@ -300,6 +305,15 @@ def split_document(path: Path) -> list[Document]:
         content = _RE_PAGE_MARK.sub("", content)
         content = re.sub(r"\n{3,}", "\n\n", content).strip()
         if len(content) < 15:            # 丢弃只有标题、没有正文的空块
+            continue
+
+        # 前置块（第一个章节标题之前的内容）若只剩"文档标题 + 版本号"，没有任何信息量，
+        # 直接丢弃。否则它会在检索时抢走 Top-K 名额，甚至被模型当成来源引用。
+        # 判定依据是"位置"（不属于任何章节）+ "长度"，不针对具体文件，换一批文档同样适用。
+        if (
+            "section" not in chunk.metadata
+            and len(_plain_text(content)) < config.MIN_PREAMBLE_CHARS
+        ):
             continue
 
         meta = {k: v for k, v in chunk.metadata.items() if v}
